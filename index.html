@@ -17,7 +17,7 @@
       position: absolute;
       opacity: 0; /* ボタンを透明に */
     }
-    .reset-button, .start-button, .reset-highscore-button, .rules-button, .mode-button, .message-toggle-button {
+    .reset-button, .start-button, .pause-button, .reset-highscore-button, .rules-button, .mode-button, .message-toggle-button {
       position: fixed;
       left: 10px;
       padding: 10px 20px;
@@ -38,16 +38,21 @@
       top: 130px;
       background-color: blue;
     }
-    .reset-button {
-      top: 190px;
-      background-color: red;
-    }
     .rules-button {
-      top: 250px;
+      top: 190px;
       background-color: orange;
     }
-    .start-button {
+    .reset-button {
+      top: 250px;
+      background-color: red;
+    }
+    .pause-button {
       top: 310px;
+      background-color: yellow;
+      color: black;
+    }
+    .start-button {
+      top: 370px;
       background-color: green;
     }
     body, html {
@@ -91,12 +96,13 @@
   <button class="message-toggle-button" id="messageToggleButton">メッセージ表示: ON</button>
   <button class="mode-button" id="modeButton">モード変更</button>
   <button class="reset-highscore-button" id="resetHighScoreButton">最高スコアリセット</button>
-  <button class="reset-button" id="resetButton">リセット</button>
   <button class="rules-button" id="rulesButton">ルール説明</button>
+  <button class="reset-button" id="resetButton">リセット</button>
+  <button class="pause-button" id="pauseButton">一時停止</button>
   <button class="start-button" id="startButton">ゲームスタート</button>
 
   <script>
-    let points = 0, timer = 60, gameStarted = false, countdownInterval, cheatMode = false, showMessage = true;
+    let points = 0, timer = 60, gameStarted = false, countdownInterval, cheatMode = false, showMessage = true, isPaused = false;
 
     const updateHighScore = () => {
       const highestScore = localStorage.getItem('highestScore') || 0;
@@ -113,12 +119,14 @@
 
     const startTimer = () => {
       countdownInterval = setInterval(() => {
-        timer--;
-        updateTimer();
-        if (timer <= 0) {
-          clearInterval(countdownInterval);
-          alert("時間終了！ あなたのポイント: " + points);
-          saveScore(); 
+        if (!isPaused) {
+          timer--;
+          updateTimer();
+          if (timer <= 0) {
+            clearInterval(countdownInterval);
+            alert("時間終了！ あなたのポイント: " + points);
+            saveScore();
+          }
         }
       }, 1000);
     };
@@ -131,11 +139,9 @@
       let newLeft, newTop;
 
       while (!validPosition) {
-        // 新しい位置をランダムに計算
         newLeft = Math.random() * (container.offsetWidth - button.offsetWidth);
         newTop = Math.random() * (container.offsetHeight - button.offsetHeight);
 
-        // 他の固定要素と重ならないかを確認
         validPosition = !isOverlapping(newLeft, newTop, button.offsetWidth, button.offsetHeight);
       }
 
@@ -153,14 +159,14 @@
           y < rect.bottom &&
           y + height > rect.top
         ) {
-          return true; // 重なっている場合
+          return true;
         }
       }
-      return false; // 重ならない場合
+      return false;
     };
 
     document.getElementById('button').addEventListener('click', () => {
-      if (gameStarted) {
+      if (gameStarted && !isPaused) {
         points++;
         updateScore();
         moveButton();
@@ -171,8 +177,10 @@
     });
 
     document.getElementById('resetButton').addEventListener('click', () => {
-      points = 0; timer = 60;
-      updateScore(); updateTimer();
+      points = 0;
+      timer = 60;
+      updateScore();
+      updateTimer();
       clearInterval(countdownInterval);
       gameStarted = false;
       alert("ゲームがリセットされました");
@@ -200,6 +208,7 @@
     document.getElementById('startButton').addEventListener('click', () => {
       if (!gameStarted) {
         gameStarted = true;
+        isPaused = false;
         startTimer();
         moveButton();
         updateScore();
@@ -210,10 +219,20 @@
       }
     });
 
+    document.getElementById('pauseButton').addEventListener('click', () => {
+      if (gameStarted) {
+        isPaused = !isPaused;
+        alert(isPaused ? "ゲームが一時停止しました" : "ゲームが再開されました");
+      } else {
+        alert("ゲームが始まっていません！");
+      }
+    });
+
     document.getElementById('rulesButton').addEventListener('click', () => {
       alert(`ルール:
 1. 制限時間内に隠れたボタンをクリックして、できるだけ多くのポイントを獲得しましょう！
-2. チートモードを有効にすると、ボタンが見やすくなりますが、最高スコアは記録されません。`);
+2. チートモードを有効にすると、ボタンが見やすくなりますが、最高スコアは記録されません。
+3. 一時停止ボタンを使用すると、タイマーを止めてゲームを一時停止できます。`);
     });
 
     document.getElementById('modeButton').addEventListener('click', () => {
@@ -223,8 +242,8 @@
       }
       cheatMode = !cheatMode;
       const button = document.getElementById('button');
-      button.style.opacity = cheatMode ? 0.5 : 0;  // チートモードではボタンを半透明に
-      button.style.border = cheatMode ? '2px solid white' : 'none';  // チートモードではボタンの枠線を白に
+      button.style.opacity = cheatMode ? 0.5 : 0;
+      button.style.border = cheatMode ? '2px solid white' : 'none';
       alert(cheatMode ? "チートモードが有効になりました！" : "チートモードが無効になりました！");
     });
 
