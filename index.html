@@ -17,7 +17,7 @@
       position: absolute;
       opacity: 0; /* ボタンを透明に */
     }
-    .reset-button, .start-button, .reset-highscore-button {
+    .reset-button, .start-button, .reset-highscore-button, .rules-button {
       position: fixed;
       left: 10px;
       padding: 10px 20px;
@@ -34,8 +34,12 @@
       top: 10px;
       background-color: blue;
     }
+    .rules-button {
+      top: 130px;  /* ルール説明ボタンの位置（スタートボタンの上） */
+      background-color: orange;
+    }
     .start-button {
-      top: 130px;
+      top: 190px;  /* スタートボタンの位置を調整 */
       background-color: green;
     }
     body, html {
@@ -78,6 +82,7 @@
   <div id="timer">残り時間: 60秒</div>
   <button class="reset-button" id="resetButton">リセット</button>
   <button class="reset-highscore-button" id="resetHighScoreButton">最高スコアリセット</button>
+  <button class="rules-button" id="rulesButton">ルール説明</button>
   <button class="start-button" id="startButton">ゲームスタート</button>
 
   <script>
@@ -153,6 +158,10 @@
       } else {
         alert("すでにゲームが始まっています");
       }
+    });
+
+    document.getElementById('rulesButton').addEventListener('click', () => {
+      alert("ルール: 制限時間内に隠れたボタンをクリックして、できるだけ多くのポイントを獲得しましょう！");
     });
 
     // Enterキーが押されたときのデフォルト動作を無効にする
