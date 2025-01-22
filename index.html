@@ -7,28 +7,33 @@
     .transparent-button {
       background: none;
       border: none;
-      color: inherit;
       cursor: pointer;
+      padding: 1px 3px;
+      font-size: 8px;
+      width: 40px;
+      height: 20px;
+      position: absolute;
+      opacity: 0; /* ボタンを透明に */
     }
     .reset-button, .start-button, .reset-highscore-button {
       position: fixed;
       left: 10px;
-      background-color: red;
-      color: white;
-      padding: 10px 20px;
-      font-size: 16px;
+      padding: 5px 10px;
+      font-size: 12px;
       cursor: pointer;
       border: none;
+      color: white;
     }
     .reset-button {
       top: 70px;
+      background-color: red;
     }
     .reset-highscore-button {
       top: 10px;
-      background-color: blue; /* 最高スコアリセットボタンの色を青に */
+      background-color: blue;
     }
     .start-button {
-      top: 130px;  /* スタートボタンの位置 */
+      top: 130px;
       background-color: green;
     }
     body, html {
@@ -43,35 +48,28 @@
       width: 100%;
       height: 100%;
     }
-    .transparent-button {
-      position: absolute;
+    #score, #timer, #highScore {
+      position: fixed;
+      font-size: 16px;
+      color: white;
     }
     #score {
-      position: fixed;
-      top: 40px;  
+      top: 40px;
       right: 10px;
-      font-size: 24px;
-      color: white;
     }
     #timer {
-      position: fixed;
       top: 70px;
       right: 10px;
-      font-size: 24px;
-      color: white;
     }
     #highScore {
-      position: fixed;
-      top: 10px;  
+      top: 10px;
       right: 10px;
-      font-size: 24px;
-      color: white;
     }
   </style>
 </head>
 <body>
   <div class="position-container">
-    <button class="transparent-button" id="button"></button>  
+    <button class="transparent-button" id="button" tabindex="-1"></button>
   </div>
   <div id="highScore">最高スコア: 0</div>
   <div id="score">ポイント: 0</div>
@@ -81,29 +79,23 @@
   <button class="start-button" id="startButton">ゲームスタート</button>
 
   <script>
-    let points = 0;  
-    let timer = 60;  
-    let countdownInterval;
-    let gameStarted = false;  // ゲーム開始状態
+    let points = 0, timer = 60, gameStarted = false, countdownInterval;
 
-    function updateHighScore() {
-      const highScoreElement = document.getElementById('highScore');
+    const updateHighScore = () => {
       const highestScore = localStorage.getItem('highestScore') || 0;
-      highScoreElement.textContent = `最高スコア: ${highestScore}`;
-    }
+      document.getElementById('highScore').textContent = `最高スコア: ${highestScore}`;
+    };
 
-    function updateScore() {
-      const scoreElement = document.getElementById('score');
-      scoreElement.textContent = `ポイント: ${points}`;
-    }
+    const updateScore = () => {
+      document.getElementById('score').textContent = `ポイント: ${points}`;
+    };
 
-    function updateTimer() {
-      const timerElement = document.getElementById('timer');
-      timerElement.textContent = `残り時間: ${timer}秒`;
-    }
+    const updateTimer = () => {
+      document.getElementById('timer').textContent = `残り時間: ${timer}秒`;
+    };
 
-    function startTimer() {
-      countdownInterval = setInterval(function() {
+    const startTimer = () => {
+      countdownInterval = setInterval(() => {
         timer--;
         updateTimer();
         if (timer <= 0) {
@@ -112,68 +104,63 @@
           saveScore(); 
         }
       }, 1000);
-    }
+    };
 
-    function moveButton() {
+    const moveButton = () => {
       const button = document.getElementById('button');
       const container = document.querySelector('.position-container');
-      const containerWidth = container.offsetWidth;
-      const containerHeight = container.offsetHeight;
+      button.style.left = `${Math.random() * (container.offsetWidth - button.offsetWidth)}px`;
+      button.style.top = `${Math.random() * (container.offsetHeight - button.offsetHeight)}px`;
+    };
 
-      const randomX = Math.random() * (containerWidth - button.offsetWidth);
-      const randomY = Math.random() * (containerHeight - button.offsetHeight);
-      button.style.left = `${randomX}px`;
-      button.style.top = `${randomY}px`;
-    }
-
-    document.getElementById('button').addEventListener('click', function() {
+    document.getElementById('button').addEventListener('click', () => {
       if (gameStarted) {
-        points++; 
-        updateScore(); 
-        moveButton(); 
+        points++; updateScore(); moveButton();
         alert("よく気づいたね！");
       }
     });
 
-    document.getElementById('resetButton').addEventListener('click', function() {
-      points = 0; 
-      timer = 60; 
-      updateScore(); 
-      updateTimer(); 
-      clearInterval(countdownInterval); 
-      gameStarted = false; // ゲームをリセット
+    document.getElementById('resetButton').addEventListener('click', () => {
+      points = 0; timer = 60;
+      updateScore(); updateTimer();
+      clearInterval(countdownInterval);
+      gameStarted = false;
       alert("ゲームがリセットされました");
     });
 
-    document.getElementById('resetHighScoreButton').addEventListener('click', function() {
-      localStorage.removeItem('highestScore'); 
-      updateHighScore(); 
+    document.getElementById('resetHighScoreButton').addEventListener('click', () => {
+      localStorage.removeItem('highestScore');
+      updateHighScore();
       alert("最高スコアがリセットされました");
     });
 
-    function saveScore() {
-      let highestScore = localStorage.getItem('highestScore') || 0;
+    const saveScore = () => {
+      const highestScore = localStorage.getItem('highestScore') || 0;
       if (points > highestScore) {
         localStorage.setItem('highestScore', points);
         alert("新記録！ あなたの最高スコアは: " + points);
       }
-      updateHighScore(); 
-    }
+      updateHighScore();
+    };
 
-    document.getElementById('startButton').addEventListener('click', function() {
+    document.getElementById('startButton').addEventListener('click', () => {
       if (!gameStarted) {
-        gameStarted = true; 
-        startTimer(); 
-        moveButton(); 
-        updateScore(); 
-        updateTimer(); 
+        gameStarted = true;
+        startTimer(); moveButton(); updateScore(); updateTimer();
         alert("ゲームがスタートしました！");
       } else {
         alert("すでにゲームが始まっています");
       }
     });
 
-    window.onload = function() {
+    // Enterキーが押されたときのデフォルト動作を無効にする
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+      }
+    });
+
+    window.onload = () => {
       updateScore();
       updateTimer();
       updateHighScore();
