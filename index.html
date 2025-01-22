@@ -17,7 +17,7 @@
       position: absolute;
       opacity: 0; /* ボタンを透明に */
     }
-    .reset-button, .start-button, .reset-highscore-button, .rules-button {
+    .reset-button, .start-button, .reset-highscore-button, .rules-button, .mode-button, .message-toggle-button {
       position: fixed;
       left: 10px;
       padding: 10px 20px;
@@ -26,20 +26,28 @@
       border: none;
       color: white;
     }
-    .reset-button {
+    .message-toggle-button {
+      top: 10px;
+      background-color: teal;
+    }
+    .mode-button {
       top: 70px;
-      background-color: red;
+      background-color: purple;
     }
     .reset-highscore-button {
-      top: 10px;
+      top: 130px;
       background-color: blue;
     }
+    .reset-button {
+      top: 190px;
+      background-color: red;
+    }
     .rules-button {
-      top: 130px;  /* ルール説明ボタンの位置（スタートボタンの上） */
+      top: 250px;
       background-color: orange;
     }
     .start-button {
-      top: 190px;  /* スタートボタンの位置を調整 */
+      top: 310px;
       background-color: green;
     }
     body, html {
@@ -80,13 +88,15 @@
   <div id="highScore">最高スコア: 0</div>
   <div id="score">ポイント: 0</div>
   <div id="timer">残り時間: 60秒</div>
-  <button class="reset-button" id="resetButton">リセット</button>
+  <button class="message-toggle-button" id="messageToggleButton">メッセージ表示: ON</button>
+  <button class="mode-button" id="modeButton">モード変更</button>
   <button class="reset-highscore-button" id="resetHighScoreButton">最高スコアリセット</button>
+  <button class="reset-button" id="resetButton">リセット</button>
   <button class="rules-button" id="rulesButton">ルール説明</button>
   <button class="start-button" id="startButton">ゲームスタート</button>
 
   <script>
-    let points = 0, timer = 60, gameStarted = false, countdownInterval;
+    let points = 0, timer = 60, gameStarted = false, countdownInterval, cheatMode = false, showMessage = true;
 
     const updateHighScore = () => {
       const highestScore = localStorage.getItem('highestScore') || 0;
@@ -116,14 +126,47 @@
     const moveButton = () => {
       const button = document.getElementById('button');
       const container = document.querySelector('.position-container');
-      button.style.left = `${Math.random() * (container.offsetWidth - button.offsetWidth)}px`;
-      button.style.top = `${Math.random() * (container.offsetHeight - button.offsetHeight)}px`;
+
+      let validPosition = false;
+      let newLeft, newTop;
+
+      while (!validPosition) {
+        // 新しい位置をランダムに計算
+        newLeft = Math.random() * (container.offsetWidth - button.offsetWidth);
+        newTop = Math.random() * (container.offsetHeight - button.offsetHeight);
+
+        // 他の固定要素と重ならないかを確認
+        validPosition = !isOverlapping(newLeft, newTop, button.offsetWidth, button.offsetHeight);
+      }
+
+      button.style.left = `${newLeft}px`;
+      button.style.top = `${newTop}px`;
+    };
+
+    const isOverlapping = (x, y, width, height) => {
+      const fixedElements = document.querySelectorAll('button, #score, #timer, #highScore');
+      for (let element of fixedElements) {
+        const rect = element.getBoundingClientRect();
+        if (
+          x < rect.right &&
+          x + width > rect.left &&
+          y < rect.bottom &&
+          y + height > rect.top
+        ) {
+          return true; // 重なっている場合
+        }
+      }
+      return false; // 重ならない場合
     };
 
     document.getElementById('button').addEventListener('click', () => {
       if (gameStarted) {
-        points++; updateScore(); moveButton();
-        alert("よく気づいたね！");
+        points++;
+        updateScore();
+        moveButton();
+        if (showMessage) {
+          alert("みつけた！");
+        }
       }
     });
 
@@ -142,6 +185,10 @@
     });
 
     const saveScore = () => {
+      if (cheatMode) {
+        alert("チートモード中のため、最高スコアは保存されません！");
+        return;
+      }
       const highestScore = localStorage.getItem('highestScore') || 0;
       if (points > highestScore) {
         localStorage.setItem('highestScore', points);
@@ -153,7 +200,10 @@
     document.getElementById('startButton').addEventListener('click', () => {
       if (!gameStarted) {
         gameStarted = true;
-        startTimer(); moveButton(); updateScore(); updateTimer();
+        startTimer();
+        moveButton();
+        updateScore();
+        updateTimer();
         alert("ゲームがスタートしました！");
       } else {
         alert("すでにゲームが始まっています");
@@ -161,14 +211,26 @@
     });
 
     document.getElementById('rulesButton').addEventListener('click', () => {
-      alert("ルール: 制限時間内に隠れたボタンをクリックして、できるだけ多くのポイントを獲得しましょう！");
+      alert(`ルール:
+1. 制限時間内に隠れたボタンをクリックして、できるだけ多くのポイントを獲得しましょう！
+2. チートモードを有効にすると、ボタンが見やすくなりますが、最高スコアは記録されません。`);
     });
 
-    // Enterキーが押されたときのデフォルト動作を無効にする
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') {
-        event.preventDefault();
+    document.getElementById('modeButton').addEventListener('click', () => {
+      if (gameStarted) {
+        alert("ゲーム中はチートモードを切り替えられません！");
+        return;
       }
+      cheatMode = !cheatMode;
+      const button = document.getElementById('button');
+      button.style.opacity = cheatMode ? 0.5 : 0;  // チートモードではボタンを半透明に
+      button.style.border = cheatMode ? '2px solid white' : 'none';  // チートモードではボタンの枠線を白に
+      alert(cheatMode ? "チートモードが有効になりました！" : "チートモードが無効になりました！");
+    });
+
+    document.getElementById('messageToggleButton').addEventListener('click', () => {
+      showMessage = !showMessage;
+      document.getElementById('messageToggleButton').textContent = `メッセージ表示: ${showMessage ? "ON" : "OFF"}`;
     });
 
     window.onload = () => {
