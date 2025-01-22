@@ -9,8 +9,27 @@
       border: none;
       color: inherit;
       cursor: pointer;
+    }
+    .reset-button, .start-button, .reset-highscore-button {
+      position: fixed;
+      left: 10px;
+      background-color: red;
+      color: white;
       padding: 10px 20px;
       font-size: 16px;
+      cursor: pointer;
+      border: none;
+    }
+    .reset-button {
+      top: 70px;
+    }
+    .reset-highscore-button {
+      top: 10px;
+      background-color: blue; /* 最高スコアリセットボタンの色を青に */
+    }
+    .start-button {
+      top: 130px;  /* スタートボタンの位置 */
+      background-color: green;
     }
     body, html {
       margin: 0;
@@ -29,8 +48,22 @@
     }
     #score {
       position: fixed;
-      top: 10px;
-      left: 10px;
+      top: 40px;  
+      right: 10px;
+      font-size: 24px;
+      color: white;
+    }
+    #timer {
+      position: fixed;
+      top: 70px;
+      right: 10px;
+      font-size: 24px;
+      color: white;
+    }
+    #highScore {
+      position: fixed;
+      top: 10px;  
+      right: 10px;
       font-size: 24px;
       color: white;
     }
@@ -38,49 +71,112 @@
 </head>
 <body>
   <div class="position-container">
-    <button class="transparent-button" id="button"></button>
+    <button class="transparent-button" id="button"></button>  
   </div>
+  <div id="highScore">最高スコア: 0</div>
   <div id="score">ポイント: 0</div>
+  <div id="timer">残り時間: 60秒</div>
+  <button class="reset-button" id="resetButton">リセット</button>
+  <button class="reset-highscore-button" id="resetHighScoreButton">最高スコアリセット</button>
+  <button class="start-button" id="startButton">ゲームスタート</button>
 
   <script>
-    let points = 0;  // ポイントの初期値
+    let points = 0;  
+    let timer = 60;  
+    let countdownInterval;
+    let gameStarted = false;  // ゲーム開始状態
 
-    // ポイントを更新する関数
+    function updateHighScore() {
+      const highScoreElement = document.getElementById('highScore');
+      const highestScore = localStorage.getItem('highestScore') || 0;
+      highScoreElement.textContent = `最高スコア: ${highestScore}`;
+    }
+
     function updateScore() {
       const scoreElement = document.getElementById('score');
       scoreElement.textContent = `ポイント: ${points}`;
     }
 
-    // ボタンをランダムに移動させる関数
+    function updateTimer() {
+      const timerElement = document.getElementById('timer');
+      timerElement.textContent = `残り時間: ${timer}秒`;
+    }
+
+    function startTimer() {
+      countdownInterval = setInterval(function() {
+        timer--;
+        updateTimer();
+        if (timer <= 0) {
+          clearInterval(countdownInterval);
+          alert("時間終了！ あなたのポイント: " + points);
+          saveScore(); 
+        }
+      }, 1000);
+    }
+
     function moveButton() {
       const button = document.getElementById('button');
       const container = document.querySelector('.position-container');
-
-      // コンテナの幅と高さを取得
       const containerWidth = container.offsetWidth;
       const containerHeight = container.offsetHeight;
 
-      // ランダムなX, Y座標を計算
       const randomX = Math.random() * (containerWidth - button.offsetWidth);
       const randomY = Math.random() * (containerHeight - button.offsetHeight);
-
-      // ボタンの位置を更新
       button.style.left = `${randomX}px`;
       button.style.top = `${randomY}px`;
     }
 
-    // ボタンがクリックされたときの処理
     document.getElementById('button').addEventListener('click', function() {
-      points++; // ポイントを1増やす
-      updateScore(); // ポイントを画面に反映
-      alert("よく気づいたね");
-      moveButton(); // ボタンをランダムに移動
+      if (gameStarted) {
+        points++; 
+        updateScore(); 
+        moveButton(); 
+        alert("よく気づいたね！");
+      }
     });
 
-    // 初期位置もランダムに設定
+    document.getElementById('resetButton').addEventListener('click', function() {
+      points = 0; 
+      timer = 60; 
+      updateScore(); 
+      updateTimer(); 
+      clearInterval(countdownInterval); 
+      gameStarted = false; // ゲームをリセット
+      alert("ゲームがリセットされました");
+    });
+
+    document.getElementById('resetHighScoreButton').addEventListener('click', function() {
+      localStorage.removeItem('highestScore'); 
+      updateHighScore(); 
+      alert("最高スコアがリセットされました");
+    });
+
+    function saveScore() {
+      let highestScore = localStorage.getItem('highestScore') || 0;
+      if (points > highestScore) {
+        localStorage.setItem('highestScore', points);
+        alert("新記録！ あなたの最高スコアは: " + points);
+      }
+      updateHighScore(); 
+    }
+
+    document.getElementById('startButton').addEventListener('click', function() {
+      if (!gameStarted) {
+        gameStarted = true; 
+        startTimer(); 
+        moveButton(); 
+        updateScore(); 
+        updateTimer(); 
+        alert("ゲームがスタートしました！");
+      } else {
+        alert("すでにゲームが始まっています");
+      }
+    });
+
     window.onload = function() {
-      moveButton();
-      updateScore(); // 初期状態のポイントを表示
+      updateScore();
+      updateTimer();
+      updateHighScore();
     };
   </script>
 </body>
