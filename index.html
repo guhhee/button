@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang='ja'>
+<head>
+  <meta charset="utf-8">
+  <title>ボタン探し</title>
+  <style>
+    .transparent-button {
+      background: none;
+      border: none;
+      color: inherit;
+      cursor: pointer;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+    body, html {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      background-color: black;
+      color: white;
+    }
+    .position-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+    .transparent-button {
+      position: absolute;
+    }
+    #score {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      font-size: 24px;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="position-container">
+    <button class="transparent-button" id="button"></button>
+  </div>
+  <div id="score">ポイント: 0</div>
+
+  <script>
+    let points = 0;  // ポイントの初期値
+
+    // ポイントを更新する関数
+    function updateScore() {
+      const scoreElement = document.getElementById('score');
+      scoreElement.textContent = `ポイント: ${points}`;
+    }
+
+    // ボタンをランダムに移動させる関数
+    function moveButton() {
+      const button = document.getElementById('button');
+      const container = document.querySelector('.position-container');
+
+      // コンテナの幅と高さを取得
+      const containerWidth = container.offsetWidth;
+      const containerHeight = container.offsetHeight;
+
+      // ランダムなX, Y座標を計算
+      const randomX = Math.random() * (containerWidth - button.offsetWidth);
+      const randomY = Math.random() * (containerHeight - button.offsetHeight);
+
+      // ボタンの位置を更新
+      button.style.left = `${randomX}px`;
+      button.style.top = `${randomY}px`;
+    }
+
+    // ボタンがクリックされたときの処理
+    document.getElementById('button').addEventListener('click', function() {
+      points++; // ポイントを1増やす
+      updateScore(); // ポイントを画面に反映
+      alert("よく気づいたね");
+      moveButton(); // ボタンをランダムに移動
+    });
+
+    // 初期位置もランダムに設定
+    window.onload = function() {
+      moveButton();
+      updateScore(); // 初期状態のポイントを表示
+    };
+  </script>
+</body>
+</html>
