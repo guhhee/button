@@ -17,7 +17,7 @@
       position: absolute;
       opacity: 0; /* ボタンを透明に */
     }
-    .reset-button, .start-button, .pause-button, .reset-highscore-button, .rules-button, .mode-button, .message-toggle-button {
+    .start-button, .pause-button, .reset-highscore-button, .rules-button, .mode-button, .message-toggle-button {
       position: fixed;
       left: 10px;
       padding: 10px 20px;
@@ -30,29 +30,25 @@
       top: 10px;
       background-color: teal;
     }
-    .mode-button {
-      top: 70px;
-      background-color: purple;
-    }
     .reset-highscore-button {
-      top: 130px;
+      top: 70px;
       background-color: blue;
+    }
+    .mode-button {
+      top: 130px;
+      background-color: purple;
     }
     .rules-button {
       top: 190px;
       background-color: orange;
     }
-    .reset-button {
-      top: 250px;
-      background-color: red;
-    }
     .pause-button {
-      top: 310px;
+      top: 250px;
       background-color: yellow;
       color: black;
     }
     .start-button {
-      top: 370px;
+      top: 310px;
       background-color: green;
     }
     body, html {
@@ -94,10 +90,9 @@
   <div id="score">ポイント: 0</div>
   <div id="timer">残り時間: 60秒</div>
   <button class="message-toggle-button" id="messageToggleButton">メッセージ表示: ON</button>
-  <button class="mode-button" id="modeButton">モード変更</button>
   <button class="reset-highscore-button" id="resetHighScoreButton">最高スコアリセット</button>
+  <button class="mode-button" id="modeButton">モード変更</button>
   <button class="rules-button" id="rulesButton">ルール説明</button>
-  <button class="reset-button" id="resetButton">リセット</button>
   <button class="pause-button" id="pauseButton">一時停止</button>
   <button class="start-button" id="startButton">ゲームスタート</button>
 
@@ -126,6 +121,7 @@
             clearInterval(countdownInterval);
             alert("時間終了！ あなたのポイント: " + points);
             saveScore();
+            resetGame();
           }
         }
       }, 1000);
@@ -165,6 +161,16 @@
       return false;
     };
 
+    const resetGame = () => {
+      points = 0;
+      timer = 60;
+      gameStarted = false;
+      isPaused = false;
+      updateScore();
+      updateTimer();
+      alert("ゲームがリセットされました");
+    };
+
     document.getElementById('button').addEventListener('click', () => {
       if (gameStarted && !isPaused) {
         points++;
@@ -174,16 +180,6 @@
           alert("みつけた！");
         }
       }
-    });
-
-    document.getElementById('resetButton').addEventListener('click', () => {
-      points = 0;
-      timer = 60;
-      updateScore();
-      updateTimer();
-      clearInterval(countdownInterval);
-      gameStarted = false;
-      alert("ゲームがリセットされました");
     });
 
     document.getElementById('resetHighScoreButton').addEventListener('click', () => {
@@ -232,7 +228,8 @@
       alert(`ルール:
 1. 制限時間内に隠れたボタンをクリックして、できるだけ多くのポイントを獲得しましょう！
 2. チートモードを有効にすると、ボタンが見やすくなりますが、最高スコアは記録されません。
-3. 一時停止ボタンを使用すると、タイマーを止めてゲームを一時停止できます。`);
+3. 一時停止ボタンを使用すると、タイマーを止めてゲームを一時停止できます。
+4. ゲーム終了後、自動的にリセットされます。`);
     });
 
     document.getElementById('modeButton').addEventListener('click', () => {
