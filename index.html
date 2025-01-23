@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang='ja'>
+<html lang="ja">
 <head>
   <meta charset="utf-8">
   <title>ボタン探し</title>
@@ -17,7 +17,7 @@
       position: absolute;
       opacity: 0; /* ボタンを透明に */
     }
-    .start-button, .pause-button, .reset-highscore-button, .rules-button, .mode-button, .message-toggle-button, .stop-button {
+    .message-toggle-button, .reset-highscore-button, .mode-button, .rules-button, .pause-button, .stop-button, .start-button, .hint-button {
       position: fixed;
       left: 10px;
       padding: 10px 20px;
@@ -28,32 +28,36 @@
     }
     .message-toggle-button {
       top: 10px;
-      background-color: teal;
+      background-color: #008080; /* メッセージ表示ボタンの色 */
     }
     .reset-highscore-button {
       top: 70px;
-      background-color: blue;
+      background-color: #0000ff; /* 最高スコアのリセットボタンの色 */
     }
     .mode-button {
       top: 130px;
-      background-color: purple;
+      background-color: #800080; /* モード変更ボタンの色 */
     }
     .rules-button {
       top: 190px;
-      background-color: orange;
+      background-color: #ffa809; /* ルール説明ボタンの色 */
+    }
+    .hint-button {
+      top: 250px;
+      background-color: #ff1493; /* 濃いピンク色に変更 */
     }
     .pause-button {
-      top: 250px;
-      background-color: yellow;
-      color: black;
+      top: 310px;
+      background-color: #ffff00; /* 一時停止ボタンの色 */
+      color: black; /* 一時停止ボタンの文字色を黒に変更 */
     }
     .stop-button {
-      top: 310px;
-      background-color: red;
+      top: 370px;
+      background-color: #ff0000; /* 中断ボタンの色 */
     }
     .start-button {
-      top: 370px;
-      background-color: green;
+      top: 430px;
+      background-color: #008000; /* ゲームスタートボタンの色 */
     }
     body, html {
       margin: 0;
@@ -93,10 +97,12 @@
   <div id="highScore">最高スコア: 0</div>
   <div id="score">ポイント: 0</div>
   <div id="timer">残り時間: 60秒</div>
+
   <button class="message-toggle-button" id="messageToggleButton">メッセージ表示: ON</button>
   <button class="reset-highscore-button" id="resetHighScoreButton">最高スコアリセット</button>
   <button class="mode-button" id="modeButton">モード変更</button>
   <button class="rules-button" id="rulesButton">ルール説明</button>
+  <button class="hint-button" id="hintButton">ヒント</button>
   <button class="pause-button" id="pauseButton">一時停止</button>
   <button class="stop-button" id="stopButton">中断</button>
   <button class="start-button" id="startButton">ゲームスタート</button>
@@ -147,7 +153,7 @@
       }
 
       button.style.left = `${newLeft}px`;
-      button.style.top = `${newTop}px`;
+      button.style.top = `${newTop}px}`;
     };
 
     const isOverlapping = (x, y, width, height) => {
@@ -238,29 +244,52 @@
       }
     });
 
+    document.getElementById('hintButton').addEventListener('click', () => {
+      if (!gameStarted) {
+        alert("ゲームを開始してからヒントを使用してください！");
+        return;
+      }
+      const button = document.getElementById('button');
+      const container = document.querySelector('.position-container');
+      const buttonRect = button.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+
+      let hintMessage = "";
+
+      if (buttonRect.top < containerRect.top + containerRect.height / 3) {
+        hintMessage = "ヒント: ボタンは上側にあります！";
+      } else if (buttonRect.top > containerRect.top + 2 * containerRect.height / 3) {
+        hintMessage = "ヒント: ボタンは下側にあります！";
+      } else if (buttonRect.left < containerRect.left + containerRect.width / 3) {
+        hintMessage = "ヒント: ボタンは左側にあります！";
+      } else if (buttonRect.left > containerRect.left + 2 * containerRect.width / 3) {
+        hintMessage = "ヒント: ボタンは右側にあります！";
+      } else {
+        hintMessage = "ヒント: ボタンは中央付近にあります！";
+      }
+
+      alert(hintMessage);
+    });
+
     document.getElementById('rulesButton').addEventListener('click', () => {
       alert(`ルール:
 1. 制限時間内に隠れたボタンをクリックして、できるだけ多くのポイントを獲得しましょう！
 2. チートモードを有効にすると、ボタンが見やすくなりますが、最高スコアは記録されません。
 3. 一時停止ボタンを使用すると、タイマーを止めてゲームを一時停止できます。
-4. 中断ボタンでゲームを完全にリセットし、最初からやり直せます。`);
+4. 中断ボタンでゲームを完全にリセットし、最初からやり直せます。
+5. ヒントボタンを押すと、ボタンの近くに関するヒントを表示します。`);
     });
 
     document.getElementById('modeButton').addEventListener('click', () => {
-      if (gameStarted) {
-        alert("ゲーム中はチートモードを切り替えられません！");
-        return;
-      }
       cheatMode = !cheatMode;
       const button = document.getElementById('button');
-      button.style.opacity = cheatMode ? 0.5 : 0;
-      button.style.border = cheatMode ? '2px solid white' : 'none';
+      button.style.opacity = cheatMode ? 0.5 : 0;  // チートモードではボタンを半透明に
       alert(cheatMode ? "チートモードが有効になりました！" : "チートモードが無効になりました！");
     });
 
     document.getElementById('messageToggleButton').addEventListener('click', () => {
       showMessage = !showMessage;
-      document.getElementById('messageToggleButton').textContent = `メッセージ表示: ${showMessage ? "ON" : "OFF"}`;
+      document.getElementById('messageToggleButton').textContent = `メッセージ表示: ${showMessage ? 'ON' : 'OFF'}`;
     });
 
     window.onload = () => {
