@@ -17,7 +17,7 @@
       position: absolute;
       opacity: 0; /* ボタンを透明に */
     }
-    .start-button, .pause-button, .reset-highscore-button, .rules-button, .mode-button, .message-toggle-button {
+    .start-button, .pause-button, .reset-highscore-button, .rules-button, .mode-button, .message-toggle-button, .stop-button {
       position: fixed;
       left: 10px;
       padding: 10px 20px;
@@ -47,8 +47,12 @@
       background-color: yellow;
       color: black;
     }
-    .start-button {
+    .stop-button {
       top: 310px;
+      background-color: red;
+    }
+    .start-button {
+      top: 370px;
       background-color: green;
     }
     body, html {
@@ -94,6 +98,7 @@
   <button class="mode-button" id="modeButton">モード変更</button>
   <button class="rules-button" id="rulesButton">ルール説明</button>
   <button class="pause-button" id="pauseButton">一時停止</button>
+  <button class="stop-button" id="stopButton">中断</button>
   <button class="start-button" id="startButton">ゲームスタート</button>
 
   <script>
@@ -168,7 +173,6 @@
       isPaused = false;
       updateScore();
       updateTimer();
-      alert("ゲームがリセットされました");
     };
 
     document.getElementById('button').addEventListener('click', () => {
@@ -224,12 +228,22 @@
       }
     });
 
+    document.getElementById('stopButton').addEventListener('click', () => {
+      if (gameStarted) {
+        clearInterval(countdownInterval);
+        resetGame();
+        alert("ゲームが中断されました");
+      } else {
+        alert("ゲームが始まっていません！");
+      }
+    });
+
     document.getElementById('rulesButton').addEventListener('click', () => {
       alert(`ルール:
 1. 制限時間内に隠れたボタンをクリックして、できるだけ多くのポイントを獲得しましょう！
 2. チートモードを有効にすると、ボタンが見やすくなりますが、最高スコアは記録されません。
 3. 一時停止ボタンを使用すると、タイマーを止めてゲームを一時停止できます。
-4. ゲーム終了後、自動的にリセットされます。`);
+4. 中断ボタンでゲームを完全にリセットし、最初からやり直せます。`);
     });
 
     document.getElementById('modeButton').addEventListener('click', () => {
