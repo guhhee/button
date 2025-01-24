@@ -15,7 +15,7 @@
       width: 100px;
       height: 50px;
       position: absolute;
-      opacity: 0; /* ボタンを透明に */
+      opacity: 0; /* ボタンを透明に（最初は見えない） */
     }
     .message-toggle-button, .reset-highscore-button, .mode-button, .rules-button, .pause-button, .stop-button, .start-button, .hint-button {
       position: fixed;
@@ -28,36 +28,36 @@
     }
     .message-toggle-button {
       top: 10px;
-      background-color: #008080; /* メッセージ表示ボタンの色 */
+      background-color: #008080;
     }
     .reset-highscore-button {
       top: 70px;
-      background-color: #0000ff; /* 最高スコアのリセットボタンの色 */
+      background-color: #0000ff;
     }
     .mode-button {
       top: 130px;
-      background-color: #800080; /* モード変更ボタンの色 */
+      background-color: #800080;
     }
     .rules-button {
       top: 190px;
-      background-color: #ffa809; /* ルール説明ボタンの色 */
+      background-color: #ffa809;
     }
     .hint-button {
       top: 250px;
-      background-color: #ff1493; /* 濃いピンク色に変更 */
+      background-color: #ff1493;
     }
     .pause-button {
       top: 310px;
-      background-color: #ffff00; /* 一時停止ボタンの色 */
-      color: black; /* 一時停止ボタンの文字色を黒に変更 */
+      background-color: #ffff00;
+      color: black;
     }
     .stop-button {
       top: 370px;
-      background-color: #ff0000; /* 中断ボタンの色 */
+      background-color: #ff0000;
     }
     .start-button {
       top: 430px;
-      background-color: #008000; /* ゲームスタートボタンの色 */
+      background-color: #008000;
     }
     body, html {
       margin: 0;
@@ -88,6 +88,19 @@
       top: 10px;
       right: 10px;
     }
+    #hintMessage {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 18px;
+      color: white;
+      display: none;
+      background-color: rgba(0, 0, 0, 0.7);
+      padding: 10px;
+      border-radius: 5px;
+      white-space: pre-wrap; /* 改行を有効にする */
+    }
   </style>
 </head>
 <body>
@@ -107,8 +120,12 @@
   <button class="stop-button" id="stopButton">中断</button>
   <button class="start-button" id="startButton">ゲームスタート</button>
 
+  <div id="hintMessage"></div>
+
   <script>
     let points = 0, timer = 60, gameStarted = false, countdownInterval, cheatMode = false, showMessage = true, isPaused = false;
+    let currentHint = '';
+    let hintVisible = false;
 
     const updateHighScore = () => {
       const highestScore = localStorage.getItem('highestScore') || 0;
@@ -130,7 +147,7 @@
           updateTimer();
           if (timer <= 0) {
             clearInterval(countdownInterval);
-            alert("時間終了！ あなたのポイント: " + points);
+            showHintMessage("時間終了！ あなたのポイント: " + points);
             saveScore();
             resetGame();
           }
@@ -153,7 +170,8 @@
       }
 
       button.style.left = `${newLeft}px`;
-      button.style.top = `${newTop}px}`;
+      button.style.top = `${newTop}px`;
+      updateHint();
     };
 
     const isOverlapping = (x, y, width, height) => {
@@ -187,7 +205,7 @@
         updateScore();
         moveButton();
         if (showMessage) {
-          alert("みつけた！");
+          showHintMessage("みつけた！");
         }
       }
     });
@@ -195,18 +213,18 @@
     document.getElementById('resetHighScoreButton').addEventListener('click', () => {
       localStorage.removeItem('highestScore');
       updateHighScore();
-      alert("最高スコアがリセットされました");
+      showHintMessage("最高スコアがリセットされました");
     });
 
     const saveScore = () => {
       if (cheatMode) {
-        alert("チートモード中のため、最高スコアは保存されません！");
+        showHintMessage("チートモード中のため、最高スコアは保存されません！");
         return;
       }
       const highestScore = localStorage.getItem('highestScore') || 0;
       if (points > highestScore) {
         localStorage.setItem('highestScore', points);
-        alert("新記録！ あなたの最高スコアは: " + points);
+        showHintMessage("新記録！ あなたの最高スコアは: " + points);
       }
       updateHighScore();
     };
@@ -219,18 +237,18 @@
         moveButton();
         updateScore();
         updateTimer();
-        alert("ゲームがスタートしました！");
+        showHintMessage("ゲームがスタートしました！");
       } else {
-        alert("すでにゲームが始まっています");
+        showHintMessage("すでにゲームが始まっています");
       }
     });
 
     document.getElementById('pauseButton').addEventListener('click', () => {
       if (gameStarted) {
         isPaused = !isPaused;
-        alert(isPaused ? "ゲームが一時停止しました" : "ゲームが再開されました");
+        showHintMessage(isPaused ? "ゲームが一時停止しました" : "ゲームが再開されました");
       } else {
-        alert("ゲームが始まっていません！");
+        showHintMessage("ゲームが始まっていません！");
       }
     });
 
@@ -238,17 +256,26 @@
       if (gameStarted) {
         clearInterval(countdownInterval);
         resetGame();
-        alert("ゲームが中断されました");
+        showHintMessage("ゲームが中断されました");
       } else {
-        alert("ゲームが始まっていません！");
+        showHintMessage("ゲームが始まっていません！");
       }
     });
 
     document.getElementById('hintButton').addEventListener('click', () => {
-      if (!gameStarted) {
-        alert("ゲームを開始してからヒントを使用してください！");
-        return;
+      hintVisible = !hintVisible;
+      const hintMessageElement = document.getElementById('hintMessage');
+      
+      if (hintVisible) {
+        hintMessageElement.style.display = 'block';
+        updateHint();  // ヒントメッセージが表示されるタイミングで更新
+      } else {
+        hintMessageElement.style.display = 'none';
       }
+    });
+
+    const updateHint = () => {
+      const hintMessageElement = document.getElementById('hintMessage');
       const button = document.getElementById('button');
       const container = document.querySelector('.position-container');
       const buttonRect = button.getBoundingClientRect();
@@ -268,11 +295,17 @@
         hintMessage = "ヒント: ボタンは中央付近にあります！";
       }
 
-      alert(hintMessage);
-    });
+      hintMessageElement.textContent = hintMessage;
+    };
+
+    const showHintMessage = (message) => {
+      const hintMessageElement = document.getElementById('hintMessage');
+      hintMessageElement.textContent = message;
+      hintMessageElement.style.display = 'block';
+    };
 
     document.getElementById('rulesButton').addEventListener('click', () => {
-      alert(`ルール:
+      showHintMessage(`ルール:
 1. 制限時間内に隠れたボタンをクリックして、できるだけ多くのポイントを獲得しましょう！
 2. チートモードを有効にすると、ボタンが見やすくなりますが、最高スコアは記録されません。
 3. 一時停止ボタンを使用すると、タイマーを止めてゲームを一時停止できます。
@@ -281,10 +314,23 @@
     });
 
     document.getElementById('modeButton').addEventListener('click', () => {
+      if (gameStarted) {
+        showHintMessage("ゲームの途中ではモード変更できません！");
+        return;
+      }
+
       cheatMode = !cheatMode;
       const button = document.getElementById('button');
-      button.style.opacity = cheatMode ? 0.5 : 0;  // チートモードではボタンを半透明に
-      alert(cheatMode ? "チートモードが有効になりました！" : "チートモードが無効になりました！");
+      
+      if (cheatMode) {
+        button.style.opacity = 1;  // チートモードでボタンが見える
+        button.style.border = '2px solid white';
+        showHintMessage("チートモードが有効になりました！");
+      } else {
+        button.style.opacity = 0;  // チートモードが無効のときはボタンを非表示
+        button.style.border = 'none';
+        showHintMessage("チートモードが無効になりました！");
+      }
     });
 
     document.getElementById('messageToggleButton').addEventListener('click', () => {
