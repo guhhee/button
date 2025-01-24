@@ -126,6 +126,7 @@
     let points = 0, timer = 60, gameStarted = false, countdownInterval, cheatMode = false, showMessage = true, isPaused = false;
     let currentHint = '';
     let hintVisible = false;
+    let isRulesVisible = false; // ルール説明が表示されているかどうかを追跡
 
     const updateHighScore = () => {
       const highestScore = localStorage.getItem('highestScore') || 0;
@@ -300,17 +301,39 @@
 
     const showHintMessage = (message) => {
       const hintMessageElement = document.getElementById('hintMessage');
-      hintMessageElement.textContent = message;
-      hintMessageElement.style.display = 'block';
+      
+      // ヒント表示中に「みつけた！」が表示されても、ヒントが消えないように処理を変更
+      if (hintVisible) {
+        const currentHint = hintMessageElement.textContent;  // 現在のヒントメッセージを保持
+        hintMessageElement.textContent = message;
+        setTimeout(() => {
+          hintMessageElement.textContent = currentHint;  // 元のヒントを戻す
+        }, 1000); // 1秒後に元のヒントに戻す
+      } else {
+        hintMessageElement.textContent = message;
+        hintMessageElement.style.display = 'block';
+        
+        // 1秒後にメッセージを非表示
+        setTimeout(() => {
+          hintMessageElement.style.display = 'none';
+        }, 1000);
+      }
     };
 
     document.getElementById('rulesButton').addEventListener('click', () => {
-      showHintMessage(`ルール:
+      isRulesVisible = !isRulesVisible;
+
+      if (isRulesVisible) {
+        showHintMessage(`ルール:
 1. 制限時間内に隠れたボタンをクリックして、できるだけ多くのポイントを獲得しましょう！
 2. チートモードを有効にすると、ボタンが見やすくなりますが、最高スコアは記録されません。
 3. 一時停止ボタンを使用すると、タイマーを止めてゲームを一時停止できます。
 4. 中断ボタンでゲームを完全にリセットし、最初からやり直せます。
 5. ヒントボタンを押すと、ボタンの近くに関するヒントを表示します。`);
+      } else {
+        // ルール説明が非表示にする
+        document.getElementById('hintMessage').style.display = 'none';
+      }
     });
 
     document.getElementById('modeButton').addEventListener('click', () => {
