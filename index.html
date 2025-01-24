@@ -15,9 +15,9 @@
       width: 100px;
       height: 50px;
       position: absolute;
-      opacity: 0; /* ボタンを透明に（最初は見えない） */
+      opacity: 0;
     }
-    .message-toggle-button, .reset-highscore-button, .mode-button, .rules-button, .pause-button, .stop-button, .start-button, .hint-button {
+    .message-toggle-button, .reset-highscore-button, .mode-button, .rules-button, .hint-button, .pause-button, .stop-button, .start-button {
       position: fixed;
       left: 10px;
       padding: 10px 20px;
@@ -88,7 +88,7 @@
       top: 10px;
       right: 10px;
     }
-    #hintMessage {
+    #hintMessage, #rulesMessage {
       position: fixed;
       top: 50%;
       left: 50%;
@@ -99,7 +99,7 @@
       background-color: rgba(0, 0, 0, 0.7);
       padding: 10px;
       border-radius: 5px;
-      white-space: pre-wrap; /* 改行を有効にする */
+      white-space: pre-wrap;
     }
   </style>
 </head>
@@ -121,6 +121,7 @@
   <button class="start-button" id="startButton">ゲームスタート</button>
 
   <div id="hintMessage"></div>
+  <div id="rulesMessage"></div>
 
   <script>
     let points = 0, timer = 60, gameStarted = false, countdownInterval, cheatMode = false, showMessage = true, isPaused = false;
@@ -264,6 +265,12 @@
     });
 
     document.getElementById('hintButton').addEventListener('click', () => {
+      // ヒントが表示されている場合は非表示にし、ルール説明が表示されていたら非表示にする
+      if (isRulesVisible) {
+        document.getElementById('rulesMessage').style.display = 'none';
+        isRulesVisible = false;
+      }
+
       hintVisible = !hintVisible;
       const hintMessageElement = document.getElementById('hintMessage');
       
@@ -302,18 +309,16 @@
     const showHintMessage = (message) => {
       const hintMessageElement = document.getElementById('hintMessage');
       
-      // ヒント表示中に「みつけた！」が表示されても、ヒントが消えないように処理を変更
       if (hintVisible) {
-        const currentHint = hintMessageElement.textContent;  // 現在のヒントメッセージを保持
+        const currentHint = hintMessageElement.textContent;
         hintMessageElement.textContent = message;
         setTimeout(() => {
-          hintMessageElement.textContent = currentHint;  // 元のヒントを戻す
-        }, 1000); // 1秒後に元のヒントに戻す
+          hintMessageElement.textContent = currentHint;
+        }, 1000);
       } else {
         hintMessageElement.textContent = message;
         hintMessageElement.style.display = 'block';
         
-        // 1秒後にメッセージを非表示
         setTimeout(() => {
           hintMessageElement.style.display = 'none';
         }, 1000);
@@ -321,18 +326,24 @@
     };
 
     document.getElementById('rulesButton').addEventListener('click', () => {
+      // ヒントメッセージが表示されている場合は非表示
+      if (hintVisible) {
+        document.getElementById('hintMessage').style.display = 'none';
+        hintVisible = false;
+      }
+
       isRulesVisible = !isRulesVisible;
 
       if (isRulesVisible) {
-        showHintMessage(`ルール:
+        document.getElementById('rulesMessage').style.display = 'block';
+        document.getElementById('rulesMessage').textContent = `ルール:
 1. 制限時間内に隠れたボタンをクリックして、できるだけ多くのポイントを獲得しましょう！
 2. チートモードを有効にすると、ボタンが見やすくなりますが、最高スコアは記録されません。
 3. 一時停止ボタンを使用すると、タイマーを止めてゲームを一時停止できます。
 4. 中断ボタンでゲームを完全にリセットし、最初からやり直せます。
-5. ヒントボタンを押すと、ボタンの近くに関するヒントを表示します。`);
+5. ヒントボタンを押すと、ボタンの近くに関するヒントを表示します。`;
       } else {
-        // ルール説明が非表示にする
-        document.getElementById('hintMessage').style.display = 'none';
+        document.getElementById('rulesMessage').style.display = 'none';
       }
     });
 
@@ -346,11 +357,11 @@
       const button = document.getElementById('button');
       
       if (cheatMode) {
-        button.style.opacity = 1;  // チートモードでボタンが見える
+        button.style.opacity = 1;
         button.style.border = '2px solid white';
         showHintMessage("チートモードが有効になりました！");
       } else {
-        button.style.opacity = 0;  // チートモードが無効のときはボタンを非表示
+        button.style.opacity = 0;
         button.style.border = 'none';
         showHintMessage("チートモードが無効になりました！");
       }
