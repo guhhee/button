@@ -101,6 +101,24 @@
       border-radius: 5px;
       white-space: pre-wrap;
     }
+    #rankingMessage {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      font-size: 18px;
+      color: white;
+      background-color: rgba(0, 0, 0, 0.7);
+      padding: 10px;
+      border-radius: 5px;
+      display: none;
+    }
+    #rankingMessage ul {
+      list-style: none;
+      padding: 0;
+    }
+    #rankingMessage li {
+      font-size: 16px;
+    }
   </style>
 </head>
 <body>
@@ -122,12 +140,16 @@
 
   <div id="hintMessage"></div>
   <div id="rulesMessage"></div>
+  <div id="rankingMessage">
+    <h3>ランキング</h3>
+    <ul id="rankingList"></ul>
+  </div>
 
   <script>
     let points = 0, timer = 60, gameStarted = false, countdownInterval, cheatMode = false, showMessage = true, isPaused = false;
     let currentHint = '';
     let hintVisible = false;
-    let isRulesVisible = false; // ルール説明が表示されているかどうかを追跡
+    let isRulesVisible = false;
 
     const updateHighScore = () => {
       const highestScore = localStorage.getItem('highestScore') || 0;
@@ -152,6 +174,7 @@
             showHintMessage("時間終了！ あなたのポイント: " + points);
             saveScore();
             resetGame();
+            updateRanking();
           }
         }
       }, 1000);
@@ -199,6 +222,35 @@
       isPaused = false;
       updateScore();
       updateTimer();
+    };
+
+    const updateRanking = () => {
+      const ranking = JSON.parse(localStorage.getItem('ranking')) || [];
+      ranking.push(points);
+      ranking.sort((a, b) => b - a);
+      ranking.splice(3);
+      localStorage.setItem('ranking', JSON.stringify(ranking));
+      displayRanking();
+    };
+
+    const displayRanking = () => {
+      const ranking = JSON.parse(localStorage.getItem('ranking')) || [];
+      const rankingList = document.getElementById('rankingList');
+      rankingList.innerHTML = '';
+
+      ranking.forEach((score, index) => {
+        const listItem = document.createElement('li');
+        listItem.textContent = `${index + 1}位: ${score}`;
+        rankingList.appendChild(listItem);
+      });
+
+      for (let i = ranking.length; i < 3; i++) {
+        const listItem = document.createElement('li');
+        listItem.textContent = `${i + 1}位: なし`;
+        rankingList.appendChild(listItem);
+      }
+
+      document.getElementById('rankingMessage').style.display = 'block';
     };
 
     document.getElementById('button').addEventListener('click', () => {
@@ -265,7 +317,6 @@
     });
 
     document.getElementById('hintButton').addEventListener('click', () => {
-      // ヒントが表示されている場合は非表示にし、ルール説明が表示されていたら非表示にする
       if (isRulesVisible) {
         document.getElementById('rulesMessage').style.display = 'none';
         isRulesVisible = false;
@@ -276,7 +327,7 @@
       
       if (hintVisible) {
         hintMessageElement.style.display = 'block';
-        updateHint();  // ヒントメッセージが表示されるタイミングで更新
+        updateHint();
       } else {
         hintMessageElement.style.display = 'none';
       }
@@ -326,7 +377,6 @@
     };
 
     document.getElementById('rulesButton').addEventListener('click', () => {
-      // ヒントメッセージが表示されている場合は非表示
       if (hintVisible) {
         document.getElementById('hintMessage').style.display = 'none';
         hintVisible = false;
@@ -376,6 +426,7 @@
       updateScore();
       updateTimer();
       updateHighScore();
+      displayRanking();
     };
   </script>
 </body>
