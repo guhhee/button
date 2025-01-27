@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ランキング表示</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      text-align: center;
+    }
+    #rankingList {
+      list-style-type: none;
+      padding: 0;
+    }
+    #rankingList li {
+      font-size: 18px;
+      margin: 5px 0;
+    }
+    #controls {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>ランキング</h1>
+  <ul id="rankingList">
+    <!-- ランキングがここに表示される -->
+  </ul>
+
+  <div id="controls">
+    <input type="number" id="scoreInput" placeholder="スコアを入力" />
+    <button id="addScoreButton">スコアを追加</button>
+    <button id="resetRankingButton">ランキングをリセット</button>
+  </div>
+
+  <script>
+    // ランキングを表示する関数
+    const displayRanking = () => {
+      const ranking = JSON.parse(localStorage.getItem('ranking')) || [];
+      const rankingList = document.getElementById('rankingList');
+      rankingList.innerHTML = '';
+
+      // ランキングを表示
+      ranking.forEach((score, index) => {
+        const listItem = document.createElement('li');
+        listItem.textContent = `${index + 1}位: ${score}`;
+        rankingList.appendChild(listItem);
+      });
+
+      // ランキングが3位未満の場合、空の順位を埋める
+      for (let i = ranking.length; i < 3; i++) {
+        const listItem = document.createElement('li');
+        listItem.textContent = `${i + 1}位: なし`;
+        rankingList.appendChild(listItem);
+      }
+    };
+
+    // スコアをランキングに追加する関数
+    const addScore = (score) => {
+      const ranking = JSON.parse(localStorage.getItem('ranking')) || [];
+      ranking.push(score);
+
+      // スコアを降順でソートし、上位3位を保持
+      ranking.sort((a, b) => b - a);
+      const updatedRanking = ranking.slice(0, 3);
+
+      // ローカルストレージに保存
+      localStorage.setItem('ranking', JSON.stringify(updatedRanking));
+
+      // 更新後のランキングを表示
+      displayRanking();
+    };
+
+    // ランキングをリセットする関数
+    const resetRanking = () => {
+      localStorage.removeItem('ranking');
+      displayRanking();
+    };
+
+    // ページロード時にランキングを表示
+    window.onload = () => {
+      displayRanking();
+    };
+
+    // ボタンイベントの設定
+    document.getElementById('addScoreButton').addEventListener('click', () => {
+      const scoreInput = document.getElementById('scoreInput');
+      const score = parseInt(scoreInput.value, 10);
+
+      if (!isNaN(score)) {
+        addScore(score);
+        scoreInput.value = '';
+      } else {
+        alert('スコアは数字で入力してください。');
+      }
+    });
+
+    document.getElementById('resetRankingButton').addEventListener('click', () => {
+      if (confirm('ランキングをリセットしますか？')) {
+        resetRanking();
+      }
+    });
+  </script>
+</body>
+</html>
